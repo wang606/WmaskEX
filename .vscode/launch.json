@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug WmaskEX",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/WmaskEX.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug",
+            "environment": [],
+            "externalConsole": true
+        }, 
+        {
+            "name": "Debug WmaskEXSpineConfigAutoGenerator",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/WmaskEXSpineConfigAutoGenerator.exe",
+            "args": ["-i", "D:/Documents/Live2DAssets/WmaskEX/Live2DViewerEX/[NIKKE] Cinderella Beautiful Me Alt Blue"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/Debug",
+            "environment": [],
+            "externalConsole": true
+        }
+    ]
+}
