@@ -465,8 +465,8 @@ HWND createWmaskEXMainWindow() {
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, 
         width, height, NULL, NULL, hInstance, NULL);
     
-    configListHwnd = CW(L"LISTBOX", NULL, LBS_STANDARD | LBS_DISABLENOSCROLL, 0, 0, 4, 1, (HMENU)ID_ConfigList); 
-    previewHwnd = CW(L"WmaskEXPreviewClass", NULL, WS_BORDER, 4, 0, 5, 1);
+    configListHwnd = CW(L"LISTBOX", NULL, LBS_STANDARD | LBS_DISABLENOSCROLL, 0, 0, 5, 1, (HMENU)ID_ConfigList); 
+    previewHwnd = CW(L"WmaskEXPreviewClass", NULL, WS_BORDER, 5, 0, 4, 1);
     nameLabelHwnd = CW(L"STATIC", L"name", NULL, 0, 1);
     nameEditHwnd = CW(L"EDIT", NULL, ES_AUTOHSCROLL | WS_BORDER, 0, 2, 1, 5);
     exePathLabelHwnd = CW(L"STATIC", L"parent", NULL, 1, 1);

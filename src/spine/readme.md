@@ -75,6 +75,42 @@
 
 在spine-cpp-40所做修改的基础上无修改
 
+不，还是有修改的，对官方`SkeletonJson.cpp`和`SkeletonBinary.cpp`做出如下修改以解除3.8.75（网上广泛流传的破解版本）版本限制:joy: ：
+
+```diff
+@@ -128,13 +128,6 @@
+ 
+ 	char *skeletonData_version = readString(input);
+ 	skeletonData->_version.own(skeletonData_version);
+-    if ("3.8.75" == skeletonData->_version) {
+-        delete input;
+-        delete skeletonData;
+-        setError("Unsupported skeleton data, please export with a newer version of Spine.", "");
+-        return NULL;
+-    }
+-
+ 	skeletonData->_x = readFloat(input);
+ 	skeletonData->_y = readFloat(input);
+ 	skeletonData->_width = readFloat(input);
+
+```
+
+```diff
+@@ -133,11 +133,6 @@
+ 	if (skeleton) {
+ 		skeletonData->_hash = Json::getString(skeleton, "hash", 0);
+ 		skeletonData->_version = Json::getString(skeleton, "spine", 0);
+-		if ("3.8.75" == skeletonData->_version) {
+-            delete skeletonData;
+-            setError(root, "Unsupported skeleton data, please export with a newer version of Spine.", "");
+-            return NULL;
+-        }
+ 		skeletonData->_x = Json::getFloat(skeleton, "x", 0);
+ 		skeletonData->_y = Json::getFloat(skeleton, "y", 0);
+ 		skeletonData->_width = Json::getFloat(skeleton, "width", 0);
+
+```
+
 ### spine-cpp-37
 
 在spine-cpp-38所做修改的基础上

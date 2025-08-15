@@ -55,26 +55,3 @@ target_link_libraries(WmaskEX nlohmann_json::nlohmann_json gdiplus OpenGL::GL gl
 set_target_properties(WmaskEX PROPERTIES WIN32_EXECUTABLE TRUE LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 # set_target_properties(WmaskEX PROPERTIES WIN32_EXECUTABLE TRUE LINK_FLAGS "/SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
 target_compile_definitions(WmaskEX PRIVATE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0601 UNICODE _UNICODE)
-
-add_executable(WmaskEXSpineConfigAutoGenerator WIN32
-    src/header.h
-    src/WmaskEXSpineConfigAutoGenerator.cpp
-    src/ISpineRuntime.h
-    src/WmaskEXImage.cpp
-    src/WmaskEXSpine.cpp
-    src/WmaskEXMainWindow.cpp
-    src/WmaskEXUtils.cpp
-    src/res/resource.h
-    src/res/resources.rc
-)
-target_link_libraries(WmaskEXSpineConfigAutoGenerator
-    spine_opengl_37
-    spine_opengl_38
-    spine_opengl_40
-    spine_opengl_41
-    spine_opengl_42
-)
-target_link_libraries(WmaskEXSpineConfigAutoGenerator nlohmann_json::nlohmann_json gdiplus OpenGL::GL glbinding::glbinding)
-set_target_properties(WmaskEXSpineConfigAutoGenerator PROPERTIES WIN32_EXECUTABLE TRUE LINK_FLAGS "/SUBSYSTEM:CONSOLE /ENTRY:mainCRTStartup")
-target_compile_definitions(WmaskEXSpineConfigAutoGenerator PRIVATE WIN32_LEAN_AND_MEAN _WIN32_WINNT=0x0601 UNICODE _UNICODE)
-target_compile_options(WmaskEXSpineConfigAutoGenerator PRIVATE /utf-8)

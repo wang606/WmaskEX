@@ -133,11 +133,6 @@ SkeletonData *SkeletonJson::readSkeletonData(const char *json) {
 	if (skeleton) {
 		skeletonData->_hash = Json::getString(skeleton, "hash", 0);
 		skeletonData->_version = Json::getString(skeleton, "spine", 0);
-		if ("3.8.75" == skeletonData->_version) {
-            delete skeletonData;
-            setError(root, "Unsupported skeleton data, please export with a newer version of Spine.", "");
-            return NULL;
-        }
 		skeletonData->_x = Json::getFloat(skeleton, "x", 0);
 		skeletonData->_y = Json::getFloat(skeleton, "y", 0);
 		skeletonData->_width = Json::getFloat(skeleton, "width", 0);

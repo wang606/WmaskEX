@@ -89,7 +89,7 @@ HWND createWmaskEXImageWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
         MessageBox(NULL, (L"Failed to load image: " + assetConfig.assetPath).c_str(), L"Error", MB_ICONERROR | MB_OK);
         return NULL;
     }
-    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT, 
+    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 
         L"WmaskEXImageClass", NULL, WS_VISIBLE, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
     SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD);
     SetParent(hwnd, assetConfig.parentHwnd);

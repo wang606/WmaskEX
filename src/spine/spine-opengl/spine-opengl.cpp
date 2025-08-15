@@ -2,16 +2,49 @@
 #include <cstdio>
 #include <glbinding/gl/gl.h>
 #define STB_IMAGE_IMPLEMENTATION
-// #define STBI_WINDOWS_UTF8
+#define STBI_WINDOWS_UTF8
 #include "stb_image.h"
+#include <string>
+#include <vector>
 #include <windows.h>
 
 using namespace gl;
-using namespace spine; 
+using namespace spine;
+
+/// UTF-8 aware Spine extension for Windows
+class Utf8SpineExtension : public DefaultSpineExtension {
+public:
+    Utf8SpineExtension() : DefaultSpineExtension() {}
+
+    virtual ~Utf8SpineExtension() {}
+
+protected:
+    virtual char *_readFile(const String &path, int *length) override {
+        std::string utf8Path = path.buffer();
+        int wideSize = MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(), -1, nullptr, 0);
+        if (wideSize == 0) return 0; 
+        std::vector<wchar_t> widePath(wideSize);
+        MultiByteToWideChar(CP_UTF8, 0, utf8Path.c_str(), -1, widePath.data(), wideSize);
+        
+        FILE *file = nullptr;
+        errno_t err = _wfopen_s(&file, widePath.data(), L"rb");
+        if (err != 0 || !file) return 0; 
+
+        fseek(file, 0, SEEK_END);
+        *length = (int) ftell(file);
+        fseek(file, 0, SEEK_SET);
+
+        char *data = SpineExtension::alloc<char>(*length, __FILE__, __LINE__);
+        fread(data, 1, *length, file);
+        fclose(file);
+
+        return data;
+    }
+};
 
 /// Set the default extension used for memory allocations and file I/O
 SpineExtension *spine::getDefaultExtension() {
-	return new spine::DefaultSpineExtension();
+    return new Utf8SpineExtension();
 }
 
 /// A blend mode, see https://en.esotericsoftware.com/spine-slots#Blending

@@ -186,15 +186,14 @@ HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     }
     pData->bounds = assetConfig.bounds;
     pData->pma = assetConfig.pma;
-    namespace fs = std::filesystem;
-    fs::path assetDir = assetConfig.assetPath;
-    std::wstring baseName = assetDir.filename().wstring();
-    fs::path atlasPath = assetDir / (baseName + L".atlas");
-    fs::path jsonPath = assetDir / (baseName + L".json");
-    fs::path skelPath = assetDir / (baseName + L".skel");
-    std::string atlasPathString = atlasPath.string();
-    std::string skeletonPathString = fs::exists(jsonPath) ? jsonPath.string() : skelPath.string();
-    pData->spineRuntime->init(atlasPathString, skeletonPathString);
+    fs::path atlasPath = assetConfig.assetPath;
+    fs::path assetDir = fs::path(atlasPath).parent_path();
+    std::string baseName = atlasPath.stem().string();
+    fs::path jsonPath = assetDir / (baseName + ".json");
+    fs::path skelPath = assetDir / (baseName + ".skel");
+    std::u8string atlasPathString = atlasPath.u8string();
+    std::u8string skeletonPathString = fs::exists(skelPath) ? skelPath.u8string() : jsonPath.u8string();
+    pData->spineRuntime->init(reinterpret_cast<const char*>(atlasPathString.c_str()), reinterpret_cast<const char*>(skeletonPathString.c_str()));
     pData->skinNames = pData->spineRuntime->getAllSkins();
     pData->multiSkin = pData->skinNames.size() > 1;
     auto allAnimations = pData->spineRuntime->getAllAnimations();
