@@ -9,7 +9,7 @@ public:
         // Constructor implementation
     }
 
-    void init(const std::string& atlas_path, const std::string& skeleton_path) override {
+    bool init(const std::string& atlas_path, const std::string& skeleton_path) override {
         // Initialize the spine runtime with the provided atlas and skeleton paths
         atlas = new Atlas(atlas_path.c_str(), &textureLoader);
         if (skeleton_path.ends_with(".json")) {
@@ -19,9 +19,11 @@ public:
             SkeletonBinary binary(atlas);
             skeletonData = binary.readSkeletonDataFile(skeleton_path.c_str());
         }
+        if (skeletonData == nullptr) return false;
         skeleton = new Skeleton(skeletonData);
         stateData = new AnimationStateData(skeletonData);
         state = new AnimationState(stateData);
+        return true; 
     }
 
     std::vector<std::string> getAllSkins() override {

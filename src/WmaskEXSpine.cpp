@@ -193,7 +193,16 @@ HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     fs::path skelPath = assetDir / (baseName + ".skel");
     std::u8string atlasPathString = atlasPath.u8string();
     std::u8string skeletonPathString = fs::exists(skelPath) ? skelPath.u8string() : jsonPath.u8string();
-    pData->spineRuntime->init(reinterpret_cast<const char*>(atlasPathString.c_str()), reinterpret_cast<const char*>(skeletonPathString.c_str()));
+    bool success = pData->spineRuntime->init(reinterpret_cast<const char*>(atlasPathString.c_str()), reinterpret_cast<const char*>(skeletonPathString.c_str()));
+    if (!success) {
+        std::wstring msg = L"Failed to initialize Spine runtime.\nAsset: " + fs::path(assetConfig.assetPath).wstring();
+        MessageBoxW(NULL, msg.c_str(), L"Error", MB_OK | MB_ICONERROR | MB_SETFOREGROUND | MB_DEFAULT_DESKTOP_ONLY | MB_TASKMODAL | MB_SERVICE_NOTIFICATION | MB_TOPMOST | MB_SYSTEMMODAL | MB_NOFOCUS);
+        wglMakeCurrent(NULL, NULL);
+        wglDeleteContext(pData->hglrc);
+        ReleaseDC(hwnd, pData->hdc);
+        delete pData;
+        return NULL;
+    }
     pData->skinNames = pData->spineRuntime->getAllSkins();
     pData->multiSkin = pData->skinNames.size() > 1;
     auto allAnimations = pData->spineRuntime->getAllAnimations();

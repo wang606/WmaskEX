@@ -14,7 +14,7 @@ struct Bounds {
 
 class ISpineRuntime {
 public:
-    virtual void init(const std::string& atlas_path, const std::string& skeleton_path) = 0;
+    virtual bool init(const std::string& atlas_path, const std::string& skeleton_path) = 0;
     virtual std::vector<std::string> getAllSkins() = 0; 
     virtual std::map<std::string, float> getAllAnimations() = 0;
     virtual Bounds getBounds() = 0; 
