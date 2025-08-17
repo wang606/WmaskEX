@@ -80,7 +80,7 @@ typedef struct {
 renderer_t* renderer_create(); 
 
 /// Sets the viewport size for the 2D orthographic projection
-void renderer_set_viewport_size(renderer_t* renderer, int width, int height); 
+void renderer_set_viewport_size(renderer_t* renderer, int width, int height, float scale); 
 
 /// Draws the given skeleton. The atlas must be the atlas from which the drawable
 /// was constructed.

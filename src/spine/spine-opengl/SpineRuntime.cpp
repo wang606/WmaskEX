@@ -101,9 +101,9 @@ public:
         renderer = renderer_create(); 
     }
 
-    void setViewportSize(int width, int height) override {
+    void setViewportSize(int width, int height, float scale) override {
         // Set the viewport size for rendering
-        renderer_set_viewport_size(renderer, width, height);
+        renderer_set_viewport_size(renderer, width, height, scale);
     }
 
     void update(float delta_time) override {

@@ -241,7 +241,7 @@ void texture_dispose(texture_t texture) {
     glDeleteTextures(1, &texture);
 }
 
-void matrix_ortho_projection(float* matrix, float width, float height) {
+void matrix_ortho_projection(float* matrix, float width, float height, float scale) {
     memset(matrix, 0, 16 * sizeof(float)); 
 
     float left = 0.0f;
@@ -251,8 +251,8 @@ void matrix_ortho_projection(float* matrix, float width, float height) {
     float znear = -1.0f;
     float zfar = 1.0f;
 
-    matrix[0] = 2.0f / (right - left);
-    matrix[5] = 2.0f / (top - bottom);
+    matrix[0] = 2.0f / (right - left) * scale;
+    matrix[5] = 2.0f / (top - bottom) * scale;
     matrix[10] = -2.0f / (zfar - znear);
     matrix[12] = -(right + left) / (right - left);
     matrix[13] = -(top + bottom) / (top - bottom);
@@ -318,9 +318,9 @@ renderer_t* renderer_create() {
     return renderer; 
 }
 
-void renderer_set_viewport_size(renderer_t* renderer, int width, int height) {
+void renderer_set_viewport_size(renderer_t* renderer, int width, int height, float scale) {
     float matrix[16]; 
-    matrix_ortho_projection(matrix, (float) width, (float) height);
+    matrix_ortho_projection(matrix, (float) width, (float) height, scale);
     shader_use(renderer->shader); 
     shader_set_matrix4(renderer->shader, "uMatrix", matrix);
 }

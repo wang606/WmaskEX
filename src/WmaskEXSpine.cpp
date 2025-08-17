@@ -34,10 +34,10 @@ bool wmaskEXSpineOnTimeout(const EventData& e, LRESULT& r) {
             break;
         }
         s *= pData->config.scale / 100.0f;
-        pData->x = (pData->parentSize.cx - pData->bounds.width * s) * pData->config.horizontal / 100.0f
-            + pData->config.xShift - pData->bounds.x * s;
-        pData->y = (pData->parentSize.cy - pData->bounds.height * s) * pData->config.vertical / 100.0f
-            + pData->config.yShift - pData->bounds.y * s;
+        pData->x = ((pData->parentSize.cx - pData->bounds.width * s) * pData->config.horizontal / 100.0f
+            + pData->config.xShift - pData->bounds.x * s) / s;
+        pData->y = ((pData->parentSize.cy - pData->bounds.height * s) * pData->config.vertical / 100.0f
+            + pData->config.yShift - pData->bounds.y * s) / s;
         SetWindowPos(e.hwnd, HWND_TOP, 0, 0, pData->parentSize.cx, pData->parentSize.cy, SWP_NOACTIVATE | SWP_NOMOVE);
         glViewport(0, 0, pData->parentSize.cx, pData->parentSize.cy);
         if (pData->fboID) {
@@ -57,8 +57,8 @@ bool wmaskEXSpineOnTimeout(const EventData& e, LRESULT& r) {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         pData->pixels.resize(pData->parentSize.cx * pData->parentSize.cy * 4, 0);
         pData->spineRuntime->setPosition(pData->x, pData->y);
-        pData->spineRuntime->setScale(s);
-        pData->spineRuntime->setViewportSize(pData->parentSize.cx, pData->parentSize.cy);
+        // pData->spineRuntime->setScale(s);
+        pData->spineRuntime->setViewportSize(pData->parentSize.cx, pData->parentSize.cy, s);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, pData->fboID);

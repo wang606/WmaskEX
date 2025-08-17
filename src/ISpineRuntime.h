@@ -24,7 +24,7 @@ public:
     virtual void setAnimation(const std::string& animation_name) = 0;
     virtual void setSkin(const std::string& skin_name) = 0;
     virtual void createRenderer() = 0; 
-    virtual void setViewportSize(int width, int height) = 0;
+    virtual void setViewportSize(int width, int height, float scale) = 0;
     virtual void update(float delta_time) = 0;
     virtual void draw(bool pma) = 0;
     virtual void dispose() = 0;
