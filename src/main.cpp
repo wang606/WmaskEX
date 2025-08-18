@@ -6,6 +6,7 @@ int main() {
         CloseHandle(hMutex);
         return 0;
     }
+    WmaskEXLog::init(); 
 
     ULONG_PTR gdiplusToken;
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -26,5 +27,6 @@ int main() {
     }
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
+    WmaskEXLog::close(); 
     return 0; 
 }

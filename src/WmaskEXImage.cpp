@@ -86,7 +86,7 @@ HWND createWmaskEXImageWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     Gdiplus::Image* image = new Gdiplus::Image(assetConfig.assetPath.c_str());
     if (image->GetLastStatus() != Gdiplus::Ok) {
         delete image;
-        MessageBox(NULL, (L"Failed to load image: " + assetConfig.assetPath).c_str(), L"Error", MB_ICONERROR | MB_OK);
+        LOG(L"ERROR: Failed to load image: " + assetConfig.assetPath);
         return NULL;
     }
     HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 

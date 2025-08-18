@@ -1,5 +1,35 @@
 #include "header.h"
 
+std::wofstream WmaskEXLog::logFile; 
+bool WmaskEXLog::initialized = false; 
+
+void WmaskEXLog::init(const std::wstring& logFilePath) {
+    if (!initialized) {
+        logFile.open(logFilePath, std::ios::app); 
+        logFile.imbue(std::locale("")); 
+        initialized = true; 
+    }
+}
+
+void WmaskEXLog::log(const std::wstring& message) {
+    if (!initialized) init(); 
+    auto now = std::chrono::system_clock::now(); 
+    auto time_t = std::chrono::system_clock::to_time_t(now); 
+    std::wstringstream ss; 
+    ss << std::put_time(std::localtime(&time_t), L"%H:%M:%S") << L" - " << message << std::endl;
+    if (logFile.is_open()) {
+        logFile << ss.str(); 
+        logFile.flush(); 
+    }
+    OutputDebugString(ss.str().c_str());
+}
+
+void WmaskEXLog::close() {
+    if (logFile.is_open()) {
+        logFile.close(); 
+    }
+}
+
 // ========== Spine资源直接解析函数 ========== //
 struct ParsedSkeletonInfo {
     std::string version;
@@ -261,7 +291,7 @@ bool isValidWmaskEXParentWindow(HWND hwnd) {
 bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetConfig) {
     fs::path assetsDir(assetsPath);
     if (!fs::exists(assetsDir) || !fs::is_directory(assetsDir)) {
-        MessageBox(NULL, L"Assets path does not exist or is not a directory.", L"Error", MB_ICONERROR | MB_OK);
+        LOG(L"ERROR: Assets path invalid: " + assetsPath);
         return false;
     }
     
@@ -406,7 +436,7 @@ bool openConfig(const std::wstring& configFilePath, std::map<std::wstring, Wmask
         }
         return true; 
     } catch (...) {
-        MessageBox(NULL, L"Invalid config file!", L"Warn", MB_ICONWARNING | MB_OK);
+        LOG(L"ERROR: Invalid config file: " + configFilePath);
         return false; 
     }
 }
@@ -424,7 +454,7 @@ bool saveConfig(const std::wstring& configFilePath, const std::map<std::wstring,
         }
         return true;
     } catch (...) {
-        MessageBox(NULL, L"Failed to save config file!", L"Error", MB_ICONERROR | MB_OK);
+        LOG(L"ERROR: Failed to save config: " + configFilePath);
         return false;
     }
 }

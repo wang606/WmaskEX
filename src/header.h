@@ -14,6 +14,7 @@
 #include <glbinding/gl/gl.h>
 #include <glbinding/glbinding.h>
 #include <glbinding/Binding.h>
+#include <iomanip>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <random>
@@ -145,6 +146,18 @@ struct HwndInfo {
     std::wstring exePath; 
     std::map<std::wstring, ChildHwndInfo> childHwnds;
 }; 
+
+// WmaskEXLog
+class WmaskEXLog {
+public:
+    static void init(const std::wstring& logFilePath = L"WmaskEX.log");
+    static void log(const std::wstring& message); 
+    static void close(); 
+private:
+    static std::wofstream logFile; 
+    static bool initialized; 
+}; 
+#define LOG(msg) WmaskEXLog::log(msg)
 
 // WmaskEX Function
 float getRandomFloat(); 
