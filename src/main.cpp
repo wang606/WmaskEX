@@ -28,5 +28,6 @@ int main() {
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
     WmaskEXLog::close(); 
+    CloseHandle(hMutex);
     return 0; 
 }

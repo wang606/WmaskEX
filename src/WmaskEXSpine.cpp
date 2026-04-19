@@ -112,8 +112,19 @@ bool wmaskEXSpineOnDestroy(const EventData& e, LRESULT& r) {
     if (!pData) return true;
     wglMakeCurrent(pData->hdc, pData->hglrc);
     glbinding::useContext((glbinding::ContextHandle)pData->hglrc);
-    pData->spineRuntime->dispose();
-    delete pData->spineRuntime;
+    if (pData->fboID) {
+        glDeleteFramebuffers(1, &pData->fboID);
+        pData->fboID = 0;
+    }
+    if (pData->textureID) {
+        glDeleteTextures(1, &pData->textureID);
+        pData->textureID = 0;
+    }
+    if (pData->spineRuntime) {
+        pData->spineRuntime->dispose();
+        delete pData->spineRuntime;
+        pData->spineRuntime = nullptr;
+    }
     wglMakeCurrent(NULL, NULL);
     wglDeleteContext(pData->hglrc);
     ReleaseDC(e.hwnd, pData->hdc);
@@ -141,6 +152,10 @@ void registerWmaskEXSpineClass() {
 HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetConfig& assetConfig) {
     HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 
         L"WmaskEXSpineClass", NULL, WS_VISIBLE, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
+    if (!hwnd) {
+        LOG(L"ERROR: Failed to create spine window.");
+        return NULL;
+    }
     SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD);
     SetParent(hwnd, assetConfig.parentHwnd);
     WmaskEXSpine* pData = new WmaskEXSpine;
@@ -165,6 +180,7 @@ HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     glbinding::initialize((glbinding::ContextHandle)pData->hglrc, nullptr, true, false); 
     pData->fboID = 0;
     pData->textureID = 0;
+    pData->spineRuntime = nullptr;
     pData->parentSize = { 0, 0 };
 
     switch (assetConfig.spineVersion) {
@@ -197,6 +213,10 @@ HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     if (!success) {
         std::wstring msg = L"ERROR: Failed to initialize Spine runtime.\nAsset: " + fs::path(assetConfig.assetPath).wstring();
         LOG(msg); 
+        if (pData->spineRuntime) {
+            delete pData->spineRuntime;
+            pData->spineRuntime = nullptr;
+        }
         wglMakeCurrent(NULL, NULL);
         wglDeleteContext(pData->hglrc);
         ReleaseDC(hwnd, pData->hdc);

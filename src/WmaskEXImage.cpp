@@ -41,15 +41,19 @@ bool wmaskEXImageOnTimeout(const EventData& e, LRESULT& r) {
     HDC hdc = GetDC(e.hwnd);
     HDC memDC = CreateCompatibleDC(hdc);
     HBITMAP memBitmap = CreateCompatibleBitmap(hdc, w, h);
-    SelectObject(memDC, memBitmap);
+    HGDIOBJ oldBitmap = SelectObject(memDC, memBitmap);
     Gdiplus::Graphics graphics(memDC);
     graphics.DrawImage(pData->image, Gdiplus::RectF(0, 0, w, h));
     POINT ptSrc = { 0, 0 };
     POINT ptDst = { x, y };
     SIZE pSize = { w, h };
-    UpdateLayeredWindow(e.hwnd, GetDC(NULL), &ptDst, &pSize, memDC, &ptSrc, NULL, &blend, ULW_ALPHA);
+    HDC screenDC = GetDC(NULL);
+    UpdateLayeredWindow(e.hwnd, screenDC, &ptDst, &pSize, memDC, &ptSrc, NULL, &blend, ULW_ALPHA);
+    ReleaseDC(NULL, screenDC);
+    SelectObject(memDC, oldBitmap);
     DeleteObject(memBitmap);
     DeleteDC(memDC);
+    ReleaseDC(e.hwnd, hdc);
     return true; 
 }
 
@@ -91,9 +95,20 @@ HWND createWmaskEXImageWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     }
     HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 
         L"WmaskEXImageClass", NULL, WS_VISIBLE, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
+    if (!hwnd) {
+        delete image;
+        LOG(L"ERROR: Failed to create image window.");
+        return NULL;
+    }
     SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD);
     SetParent(hwnd, assetConfig.parentHwnd);
     WmaskEXImage* pData = new WmaskEXImage;
+    if (!pData) {
+        delete image;
+        DestroyWindow(hwnd);
+        LOG(L"ERROR: Failed to allocate image window data.");
+        return NULL;
+    }
     pData->config = config;
     pData->parentHwnd = assetConfig.parentHwnd;
     pData->image = image;

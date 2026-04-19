@@ -2,6 +2,7 @@
 
 HINSTANCE hInstance = GetModuleHandle(NULL);
 HBRUSH hBackgroundBrush = CreateSolidBrush(RGB(240, 240, 240));
+HFONT hUiFont = NULL;
 std::wstring configFilePath = L".wmaskex";
 std::wstring previewImagePath = L"cover.png"; 
 std::map<std::wstring, WmaskEXConfig> wmaskEXConfigs;
@@ -60,6 +61,7 @@ void popupWmaskEXTrayMenu(HWND hwnd) {
     AppendMenu(trayMenu, MF_STRING, ID_QuitWmaskEX, L"Quit WmaskEX");
     SetMenuDefaultItem(trayMenu, ID_ShowWmaskEX, FALSE);
     TrackPopupMenu(trayMenu, TPM_LEFTALIGN, cursor.x, cursor.y, 0, hwnd, NULL);
+    DestroyMenu(trayMenu);
 }
 
 /* WmaskEX Preview */
@@ -410,6 +412,14 @@ bool mainWindowOnClose(const EventData& e, LRESULT& r) {
 bool mainWindowOnDestroy(const EventData& e, LRESULT& r) {
     if (e.msg == WM_DESTROY) {
         saveConfig(configFilePath, wmaskEXConfigs);
+        if (hUiFont) {
+            DeleteObject(hUiFont);
+            hUiFont = NULL;
+        }
+        if (hBackgroundBrush) {
+            DeleteObject(hBackgroundBrush);
+            hBackgroundBrush = NULL;
+        }
         PostQuitMessage(0);
         r = TRUE; 
         return true; 
@@ -500,7 +510,7 @@ HWND createWmaskEXMainWindow() {
     SendMessage(assetsPathEditHwnd, EM_SETLIMITTEXT, MAX_PATH - 10, 0);
     SendMessage(previewPathEditHwnd, EM_SETLIMITTEXT, MAX_PATH - 10, 0);
 
-    HFONT hFont = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+    hUiFont = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
         DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Microsoft YaHei");
     HWND hwnds[] = {
@@ -516,7 +526,7 @@ HWND createWmaskEXMainWindow() {
         deleteButtonHwnd, applyButtonHwnd, enableButtonHwnd
     };
     for (HWND hwnd : hwnds)
-        SendMessage(hwnd, WM_SETFONT, (WPARAM)hFont, TRUE);
+        SendMessage(hwnd, WM_SETFONT, (WPARAM)hUiFont, TRUE);
 
     SendMessage(sizeComboHwnd, CB_ADDSTRING, 0, (LPARAM)L"Fill");
     SendMessage(sizeComboHwnd, CB_ADDSTRING, 0, (LPARAM)L"Fit");
