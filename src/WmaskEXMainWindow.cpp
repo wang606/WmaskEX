@@ -17,7 +17,7 @@ HWND previewPathLabelHwnd, previewPathEditHwnd;
 HWND sizeLabelHwnd, sizeComboHwnd, scaleLabelHwnd, scaleEditHwnd, scaleUpdownHwnd;
 HWND horizontalLabelHwnd, horizontalEditHwnd, horizontalUpdownHwnd, xshiftLabelHwnd, xshiftEditHwnd, xshiftUpdownHwnd;
 HWND verticalLabelHwnd, verticalEditHwnd, verticalUpdownHwnd, yshiftLabelHwnd, yshiftEditHwnd, yshiftUpdownHwnd;
-HWND durationLabelHwnd, durationEditHwnd, durationUpdownHwnd, opacityLabelHwnd, opacityEditHwnd, opacityUpdownHwnd;
+HWND durationLabelHwnd, durationEditHwnd, durationUpdownHwnd, opacityLabelHwnd, opacityEditHwnd, opacityUpdownHwnd, pmaCheckHwnd;
 HWND deleteButtonHwnd, applyButtonHwnd, enableButtonHwnd; 
 
 /* WmaskEX Tray */
@@ -112,6 +112,7 @@ void _loadConfig(const WmaskEXConfig& c) {
     SendMessage(yshiftUpdownHwnd, UDM_SETPOS32, 0, c.yShift);
     SendMessage(durationUpdownHwnd, UDM_SETPOS32, 0, c.duration);
     SendMessage(opacityUpdownHwnd, UDM_SETPOS32, 0, c.opacity);
+    SendMessage(pmaCheckHwnd, BM_SETCHECK, c.pma ? BST_CHECKED : BST_UNCHECKED, 0);
     previewImagePath = c.previewPath.empty() ? L"cover.png" : c.previewPath;
     InvalidateRect(previewHwnd, NULL, TRUE);
     if (c.active) {
@@ -171,6 +172,7 @@ bool _formConfig(WmaskEXConfig& c) {
     c.yShift = static_cast<int>(SendMessage(yshiftUpdownHwnd, UDM_GETPOS32, 0, 0));
     c.duration = static_cast<int>(SendMessage(durationUpdownHwnd, UDM_GETPOS32, 0, 0));
     c.opacity = static_cast<int>(SendMessage(opacityUpdownHwnd, UDM_GETPOS32, 0, 0));
+    c.pma = SendMessage(pmaCheckHwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
     return true;
 }
 
@@ -187,6 +189,7 @@ void _resetConfig() {
     SendMessage(yshiftUpdownHwnd, UDM_SETPOS32, 0, 0);
     SendMessage(durationUpdownHwnd, UDM_SETPOS32, 0, 100);
     SendMessage(opacityUpdownHwnd, UDM_SETPOS32, 0, 100);
+    SendMessage(pmaCheckHwnd, BM_SETCHECK, BST_CHECKED, 0);
     previewImagePath = L"cover.png";
     InvalidateRect(previewHwnd, NULL, TRUE);
     EnableWindow(deleteButtonHwnd, TRUE);
@@ -371,7 +374,7 @@ bool mainWindowonTimeout(const EventData& e, LRESULT& r) {
                                 }
                             } else {
                                 WmaskEXAssetConfig assetConfig;
-                                if (getRandomAsset(config.assetsPath, assetConfig)) {
+                                if (getRandomAsset(config.assetsPath, config.pma, assetConfig)) {
                                     assetConfig.parentHwnd = it->first;
                                     HWND hwnd = NULL; 
                                     switch (assetConfig.type) {
@@ -497,10 +500,28 @@ HWND createWmaskEXMainWindow() {
     verticalEditHwnd = CW(L"EDIT", NULL, ES_NUMBER | WS_BORDER, 6, 2, 1, 2);
     yshiftLabelHwnd = CW(L"STATIC", L"y shift", NULL, 6, 4);
     yshiftEditHwnd = CW(L"EDIT", NULL, ES_NUMBER | WS_BORDER, 6, 5, 1, 2);
-    durationLabelHwnd = CW(L"STATIC", L"duration", NULL, 7, 1);
-    durationEditHwnd = CW(L"EDIT", NULL, ES_NUMBER | WS_BORDER, 7, 2, 1, 2);
-    opacityLabelHwnd = CW(L"STATIC", L"opacity", NULL, 7, 4);
-    opacityEditHwnd = CW(L"EDIT", NULL, ES_NUMBER | WS_BORDER, 7, 5, 1, 2);
+    const int row7Y = padding + row_height * 7 + padding * 7;
+    const int row7LeftX = padding + column_width[0] + padding;
+    const int row7GroupGap = padding;
+    const int row7GroupWidth1 = 175;
+    const int row7GroupWidth2 = 175;
+    const int row7GroupWidth3 = 100;
+    const int row7LabelWidth = 70;
+    const int row7EditWidth1 = row7GroupWidth1 - row7LabelWidth - padding;
+    const int row7EditWidth2 = row7GroupWidth2 - row7LabelWidth - padding;
+    const int row7Group1X = row7LeftX;
+    const int row7Group2X = row7Group1X + row7GroupWidth1 + row7GroupGap;
+    const int row7Group3X = row7Group2X + row7GroupWidth2 + row7GroupGap;
+    durationLabelHwnd = CreateWindowEx(NULL, L"STATIC", L"duration", WS_VISIBLE | WS_CHILD,
+        row7Group1X, row7Y, row7LabelWidth, row_height, mainWindowHwnd, NULL, hInstance, NULL);
+    durationEditHwnd = CreateWindowEx(NULL, L"EDIT", NULL, WS_VISIBLE | WS_CHILD | ES_NUMBER | WS_BORDER,
+        row7Group1X + row7LabelWidth + padding, row7Y, row7EditWidth1, row_height, mainWindowHwnd, NULL, hInstance, NULL);
+    opacityLabelHwnd = CreateWindowEx(NULL, L"STATIC", L"opacity", WS_VISIBLE | WS_CHILD,
+        row7Group2X, row7Y, row7LabelWidth, row_height, mainWindowHwnd, NULL, hInstance, NULL);
+    opacityEditHwnd = CreateWindowEx(NULL, L"EDIT", NULL, WS_VISIBLE | WS_CHILD | ES_NUMBER | WS_BORDER,
+        row7Group2X + row7LabelWidth + padding, row7Y, row7EditWidth2, row_height, mainWindowHwnd, NULL, hInstance, NULL);
+    pmaCheckHwnd = CreateWindowEx(NULL, L"BUTTON", L"pma", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
+        row7Group3X + (row7GroupWidth3 - 80) / 2, row7Y, 80, row_height, mainWindowHwnd, NULL, hInstance, NULL);
     deleteButtonHwnd = CW(L"BUTTON", L"Delete", NULL, 8, 1, 1, 2, (HMENU)ID_Delete);
     applyButtonHwnd = CW(L"BUTTON", L"Apply", NULL, 8, 3, 1, 2, (HMENU)ID_Apply);
     enableButtonHwnd = CW(L"BUTTON", L"Enable", NULL, 8, 5, 1, 2, (HMENU)ID_Enable);
@@ -523,6 +544,7 @@ HWND createWmaskEXMainWindow() {
         horizontalLabelHwnd, horizontalEditHwnd, xshiftLabelHwnd, xshiftEditHwnd, 
         verticalLabelHwnd, verticalEditHwnd, yshiftLabelHwnd, yshiftEditHwnd,
         durationLabelHwnd, durationEditHwnd, opacityLabelHwnd, opacityEditHwnd,
+        pmaCheckHwnd,
         deleteButtonHwnd, applyButtonHwnd, enableButtonHwnd
     };
     for (HWND hwnd : hwnds)

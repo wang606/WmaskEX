@@ -84,6 +84,7 @@ struct WmaskEXConfig {
     int yShift; 
     int duration; 
     int opacity; 
+    bool pma; 
 }; 
 void to_json(json& j, const WmaskEXConfig& c); 
 void from_json(const json& j, WmaskEXConfig& c); 
@@ -163,7 +164,7 @@ private:
 float getRandomFloat(); 
 float getCurrentTimeInSeconds();
 bool isValidWmaskEXParentWindow(HWND); 
-bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetConfig);
+bool getRandomAsset(const std::wstring& assetsPath, bool defaultPma, WmaskEXAssetConfig& assetConfig);
 bool openConfig(const std::wstring& configFilePath, std::map<std::wstring, WmaskEXConfig>& configs); 
 bool saveConfig(const std::wstring& configFilePath, const std::map<std::wstring, WmaskEXConfig>& configs); 
 

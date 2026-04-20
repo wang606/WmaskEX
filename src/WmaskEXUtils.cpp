@@ -212,10 +212,10 @@ ParsedSkeletonInfo parseSkelSkeleton(const std::wstring& skelPath) {
     return info;
 }
 
-bool parseAtlasPMA(const std::wstring& atlasPath) {
+bool parseAtlasPMA(const std::wstring& atlasPath, bool defaultPma) {
     try {
         std::ifstream ifs(atlasPath);
-        if (!ifs) return false;
+        if (!ifs) return defaultPma;
         std::string line;
         int lineCount = 0;
         while (std::getline(ifs, line) && lineCount < 10) {
@@ -225,8 +225,8 @@ bool parseAtlasPMA(const std::wstring& atlasPath) {
                 else return false;
             }
         }
-        return false; // 前10行没有找到pma字段，默认false
-    } catch (...) { return false; }
+        return defaultPma;
+    } catch (...) { return defaultPma; }
 }
 
 WmaskEXAssetConfig::SpineVersion getSpineVersionFromString(const std::string& versionStr) {
@@ -252,7 +252,8 @@ void to_json(json& j, const WmaskEXConfig& c) {
         {"vertical", c.vertical},
         {"yShift", c.yShift},
         {"duration", c.duration},
-        {"opacity", c.opacity}
+        {"opacity", c.opacity},
+        {"pma", c.pma}
     };
 }
 
@@ -270,6 +271,10 @@ void from_json(const json& j, WmaskEXConfig& c) {
     j.at("yShift").get_to(c.yShift);
     j.at("duration").get_to(c.duration);
     j.at("opacity").get_to(c.opacity);
+    c.pma = true;
+    if (j.contains("pma")) {
+        j.at("pma").get_to(c.pma);
+    }
 }
 
 float getRandomFloat() {
@@ -288,7 +293,7 @@ bool isValidWmaskEXParentWindow(HWND hwnd) {
         !(GetWindowLongPtr(hwnd, GWL_STYLE) & (WS_POPUP | WS_CHILD)); 
 }
 
-bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetConfig) {
+bool getRandomAsset(const std::wstring& assetsPath, bool defaultPma, WmaskEXAssetConfig& assetConfig) {
     fs::path assetsDir(assetsPath);
     if (!fs::exists(assetsDir) || !fs::is_directory(assetsDir)) {
         LOG(L"ERROR: Assets path invalid: " + assetsPath);
@@ -299,7 +304,6 @@ bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetCon
         fs::path atlasFile;
         fs::path jsonFile;
         fs::path skelFile;
-        fs::path wmaskexJsonFile;
     };
     
     std::vector<SpineAssetPaths> spineAssets;
@@ -316,11 +320,10 @@ bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetCon
                 auto dir = filePath.parent_path();
                 fs::path jsonFile = dir / (stem.wstring() + L".json");
                 fs::path skelFile = dir / (stem.wstring() + L".skel");
-                fs::path wmaskexJsonFile = dir / (stem.wstring() + L".wmaskex.json");
                 
                 // 检查同名的 .json 或 .skel 文件是否存在
                 if (fs::exists(jsonFile) || fs::exists(skelFile)) {
-                    spineAssets.push_back({filePath, jsonFile, skelFile, wmaskexJsonFile});
+                    spineAssets.push_back({filePath, jsonFile, skelFile});
                 }
             }
         }
@@ -357,55 +360,25 @@ bool getRandomAsset(const std::wstring& assetsPath, WmaskEXAssetConfig& assetCon
         
         assetConfig.type = WmaskEXAssetConfig::AssetType::AT_Spine;
         assetConfig.assetPath = spineAsset.atlasFile.wstring();
+        assetConfig.pma = true;
         
         bool parseSuccess = false;
-        
-        // 优先读取 .wmaskex.json 文件
-        if (fs::exists(spineAsset.wmaskexJsonFile)) {
-            try {
-                std::ifstream metaStream(spineAsset.wmaskexJsonFile);
-                json metaJson = json::parse(metaStream);
-                metaStream.close();
-                
-                if (metaJson.contains("version")) {
-                    std::string versionStr = metaJson["version"].get<std::string>();
-                    assetConfig.spineVersion = getSpineVersionFromString(versionStr);
-                }
-                if (metaJson.contains("bounds") && metaJson["bounds"].is_array() && metaJson["bounds"].size() == 4) {
-                    assetConfig.bounds.x = metaJson["bounds"][0].get<float>();
-                    assetConfig.bounds.y = metaJson["bounds"][1].get<float>();
-                    assetConfig.bounds.width = metaJson["bounds"][2].get<float>();
-                    assetConfig.bounds.height = metaJson["bounds"][3].get<float>();
-                }
-                if (metaJson.contains("pma"))
-                    assetConfig.pma = metaJson["pma"].get<bool>();
-                
-                if (assetConfig.spineVersion != WmaskEXAssetConfig::SpineVersion::SV_Invalid) {
-                    parseSuccess = true;
-                }
-            } catch (...) {
-                // 如果 .wmaskex.json 解析失败，继续用直接解析
-            }
+
+        ParsedSkeletonInfo info;
+        if (fs::exists(spineAsset.skelFile)) {
+            info = parseSkelSkeleton(spineAsset.skelFile.wstring());
+        } else if (fs::exists(spineAsset.jsonFile)) {
+            info = parseJsonSkeleton(spineAsset.jsonFile.wstring());
         }
-        
-        // 如果没有 .wmaskex.json 或解析失败，直接解析文件
-        if (!parseSuccess) {
-            ParsedSkeletonInfo info;
-            if (fs::exists(spineAsset.skelFile)) {
-                info = parseSkelSkeleton(spineAsset.skelFile.wstring());
-            } else if (fs::exists(spineAsset.jsonFile)) {
-                info = parseJsonSkeleton(spineAsset.jsonFile.wstring());
-            }
-            
-            if (info.valid) {
-                assetConfig.spineVersion = getSpineVersionFromString(info.version);
-                assetConfig.bounds.x = info.x;
-                assetConfig.bounds.y = info.y;
-                assetConfig.bounds.width = info.width;
-                assetConfig.bounds.height = info.height;
-                assetConfig.pma = parseAtlasPMA(spineAsset.atlasFile.wstring());
-                parseSuccess = true;
-            }
+
+        if (info.valid) {
+            assetConfig.spineVersion = getSpineVersionFromString(info.version);
+            assetConfig.bounds.x = info.x;
+            assetConfig.bounds.y = info.y;
+            assetConfig.bounds.width = info.width;
+            assetConfig.bounds.height = info.height;
+            assetConfig.pma = parseAtlasPMA(spineAsset.atlasFile.wstring(), defaultPma);
+            parseSuccess = true;
         }
         
         // 如果解析失败，返回false

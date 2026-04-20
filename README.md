@@ -2,96 +2,79 @@
 
 # WmaskEX
 
-**Live wallpaper for any window**
+**为任意窗口提供动态桌面叠加效果**
+
+英文文档 / English documentation: [README.en.md](./README.en.md)
 
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows) [![C++](https://img.shields.io/badge/C++-20-blue.svg)](https://isocpp.org/)
 
-## ✨ Key Features
+## ✨ 核心特性
 
-- 🚀 **Ultra-lightweight**: GUI built with pure Win32 API for instant startup
-- 🔒 **Completely portable**: No hooks, no registry modifications, 100% clean
-- ⚡ **Minimal resource usage**: Optimized for maximum performance
-- 🎭 **Multi-version Spine support**: Compatible with Spine 3.7, 3.8, 4.0, 4.1, 4.2
-- 🎯 **Smart application targeting**: Match and attach overlays by application name (e.g., explorer.exe)
-- 🎨 **Dynamic responsive layout**: Adaptive positioning that responds to window size changes
-- 🔄 **Automatic random cycling**: Random switching between multiple assets
+- 🚀 **极致轻量**：基于纯 Win32 API 构建 GUI，启动迅速
+- 🔒 **完全便携**：无 Hook、无注册表修改，100% 绿色
+- ⚡ **低资源占用**：针对性能进行优化
+- 🎭 **多版本 Spine 支持**：兼容 Spine 3.7、3.8、4.0、4.1、4.2
+- 🎯 **智能应用匹配**：按应用名匹配并附着叠加层（例如 explorer.exe）
+- 🎨 **动态响应布局**：随窗口尺寸变化自动调整位置
+- 🔄 **自动随机轮播**：多个资源间随机切换
 
-## ⚙️ Configuration Reference
+## ⚙️ 配置参数说明
 
 ![Configuration Interface](./screenshots/000.png)
 
-| Parameter  | Description          | Type        | Details                                                      |
+| 参数       | 说明                 | 类型        | 详情                                                         |
 | ---------- | -------------------- | ----------- | ------------------------------------------------------------ |
-| name       | Configuration Name   | String      | Unique identifier for the configuration                      |
-| parent     | Parent Window        | String      | Target parent window process name (e.g., `explorer.exe`)     |
-| assets     | Assets Folder        | Path        | Directory containing overlay assets                          |
-| preview    | Preview Image        | Path        | Preview image file path                                      |
-| size       | Size Adaptation Mode | Enum        | Fill / Fit / Follow Height / Follow Width / Fixed Size       |
-| scale      | Scale Percentage     | Number (%)  | Scaling factor applied after size adaptation                 |
-| horizontal | Horizontal Position  | Number (%)  | Horizontal position within parent window (0-100+)<br/>0/100 = left/right edge alignment |
-| x shift    | Horizontal Offset    | Number (px) | Horizontal pixel offset                                      |
-| vertical   | Vertical Position    | Number (%)  | Vertical position within parent window (0-100+)<br/>0/100 = bottom/top edge alignment |
-| y shift    | Vertical Offset      | Number (px) | Vertical pixel offset                                        |
-| duration   | Cycle Duration       | Time (sec)  | Asset switching interval                                     |
-| opacity    | Opacity              | Number      | Display opacity (0-255)                                      |
+| name       | 配置名称             | String      | 配置的唯一标识                                               |
+| parent     | 父窗口               | String      | 目标父窗口进程名（例如 `explorer.exe`）                      |
+| assets     | 资源目录             | Path        | 存放叠加资源的目录                                           |
+| preview    | 预览图               | Path        | 预览图片路径                                                 |
+| size       | 尺寸适配模式         | Enum        | Fill / Fit / Follow Height / Follow Width / Fixed Size      |
+| scale      | 缩放比例             | Number (%)  | 在尺寸适配后应用的缩放系数                                   |
+| horizontal | 水平位置             | Number (%)  | 在父窗口中的水平位置（0-100+）<br/>0/100 = 左/右边缘对齐    |
+| x shift    | 水平偏移             | Number (px) | 水平方向像素偏移                                             |
+| vertical   | 垂直位置             | Number (%)  | 在父窗口中的垂直位置（0-100+）<br/>0/100 = 下/上边缘对齐    |
+| y shift    | 垂直偏移             | Number (px) | 垂直方向像素偏移                                             |
+| duration   | 轮播时长             | Time (sec)  | 资源切换间隔                                                 |
+| opacity    | 透明度               | Number      | 显示透明度（0-255）                                          |
+| pma        | PMA 默认值           | Checkbox    | 勾选表示默认使用 `true`，未勾选表示默认使用 `false`         |
 
-## 📁 Asset Management
+## 📁 资源管理
 
-### 🖼️ Image Assets
+### 🖼️ 图片资源
 
-WmaskEX searches for image files **only in the top-level directory** (non-recursive) with the following extensions (case-insensitive):
-- **Supported formats**: `png`, `jpg`, `jpeg`, `bmp`, `ico`, `tiff`, `exif`, `wmf`, `emf`
+WmaskEX **仅在资源目录顶层**（不递归）查找图片文件，支持以下扩展名（不区分大小写）：
+- **支持格式**：`png`、`jpg`、`jpeg`、`bmp`、`ico`、`tiff`、`exif`、`wmf`、`emf`
 
-### 🎭 Spine Animation Assets
+### 🎭 Spine 动画资源
 
-WmaskEX **recursively searches** for Spine animations by detecting `.atlas` files and checking for matching skeleton files:
+WmaskEX 会通过检测 `.atlas` 文件并匹配对应骨骼文件，**递归查找** Spine 动画资源：
 
-**Required files for Spine detection:**
-- ✅ `.atlas` file (texture atlas)
-- ✅ `.json` or `.skel` file (skeleton data) with **same filename**
+**Spine 资源识别所需文件：**
+- ✅ `.atlas` 文件（纹理图集）
+- ✅ 与其**同名**的 `.json` 或 `.skel` 文件（骨骼数据）
 
-**Configuration Priority:**
-1. 🎯 **Manual configuration**: `.wmaskex.json` with **same filename** (if present, takes precedence)
-2. 🤖 **Auto-parsing**: Direct parsing from skeleton and atlas files
+#### 自动解析行为
 
-#### Auto-parsing Behavior
+WmaskEX 会自动执行：
+- 📊 **版本识别**：从 `.skel` 或 `.json` 中提取 Spine 版本
+- 📐 **边界计算**：读取骨骼边界（x、y、width、height）
+- 🎨 **PMA 检测**：从 `.atlas` 中解析预乘 Alpha 设置；若未检测到，则使用主界面的 PMA 默认值
 
-When no `.wmaskex.json` is found, WmaskEX automatically:
-- 📊 **Version detection**: Extracts Spine version from `.skel` or `.json` files
-- 📐 **Bounds calculation**: Reads skeleton bounds (x, y, width, height)
-- 🎨 **PMA detection**: Parses premultiplied alpha setting from `.atlas` file
+## 🛠️ 安装与使用
 
-#### Manual Configuration Example
-
-`.wmaskex.json` (optional, overrides auto-parsing):
-
-```json
-{
-    "version": "3.8", 
-    "bounds": [-100, -10, 220, 450], 
-    "pma": true
-}
-```
-
-**Bounds Format**: `[x, y, width, height]`
-- `width`, `height`: Bounding box dimensions
-- `x`, `y`: Bottom-left corner coordinates
-
-## 🛠️ Installation & Setup
-
-### System Requirements
+### 系统要求
 - Windows 7/8/10/11 (64-bit)
 - Visual C++ Redistributable
 - OpenGL support
 
-### Quick Start
-1. Download the latest release
-2. Extract to your preferred directory
-3. Run `WmaskEX.exe`
-4. Configure your overlays through the GUI
-5. Enjoy your enhanced desktop experience!
+### 快速开始
+1. 下载最新发布版本
+2. 解压到你希望放置的目录
+3. 运行 `WmaskEX.exe`
+4. 在 GUI 中配置叠加效果
+5. 体验增强后的桌面效果
 
-### Building from Source
+### 从源码构建
 
 ```powershell
 # Install dependencies with vcpkg
@@ -105,7 +88,7 @@ cmake ..
 cmake --build . --config Release
 ```
 
-## 🎮 Gallery
+## 🎮 效果展示
 
 <img src="./screenshots/001.gif" width="100%">
 
@@ -119,5 +102,5 @@ cmake --build . --config Release
 
 ---
 
-**⭐ Star this project if you find it useful! ⭐**
+**⭐ 如果这个项目对你有帮助，欢迎点个 Star！⭐**
 
