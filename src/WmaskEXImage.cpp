@@ -36,7 +36,7 @@ bool wmaskEXImageOnTimeout(const EventData& e, LRESULT& r) {
         + pData->config.xShift);
     y = int((pData->parentSize.cy - h) * (100 - pData->config.vertical) / 100.0f
         + pData->config.yShift);
-    SetWindowPos(e.hwnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE);
+    SetWindowPos(e.hwnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE | SWP_NOACTIVATE);
     BLENDFUNCTION blend = { AC_SRC_OVER, 0, static_cast<BYTE>(pData->config.opacity), AC_SRC_ALPHA };
     HDC hdc = GetDC(e.hwnd);
     HDC memDC = CreateCompatibleDC(hdc);
@@ -93,14 +93,15 @@ HWND createWmaskEXImageWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
         LOG(L"ERROR: Failed to load image: " + assetConfig.assetPath);
         return NULL;
     }
-    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 
-        L"WmaskEXImageClass", NULL, WS_VISIBLE, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
+    // Keep the overlay hidden until it has been attached to the target parent window.
+    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
+        L"WmaskEXImageClass", NULL, 0, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
     if (!hwnd) {
         delete image;
         LOG(L"ERROR: Failed to create image window.");
         return NULL;
     }
-    SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD);
+    SetWindowLongPtr(hwnd, GWL_STYLE, (GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD) & ~WS_VISIBLE);
     SetParent(hwnd, assetConfig.parentHwnd);
     WmaskEXImage* pData = new WmaskEXImage;
     if (!pData) {
@@ -114,6 +115,7 @@ HWND createWmaskEXImageWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
     pData->image = image;
     pData->parentSize = SIZE { 0, 0 };
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pData));
+    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
     UpdateWindow(hwnd); 
     SetTimer(hwnd, 0, wmaskEXImageRefreshDuration, NULL);
     return hwnd;

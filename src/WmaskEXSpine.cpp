@@ -150,13 +150,14 @@ void registerWmaskEXSpineClass() {
 }
 
 HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetConfig& assetConfig) {
-    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE, 
-        L"WmaskEXSpineClass", NULL, WS_VISIBLE, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
+    // Keep the overlay hidden until it has been attached to the target parent window.
+    HWND hwnd = CreateWindowEx(WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE,
+        L"WmaskEXSpineClass", NULL, 0, 0, 0, 10, 10, NULL, NULL, GetModuleHandle(NULL), NULL);
     if (!hwnd) {
         LOG(L"ERROR: Failed to create spine window.");
         return NULL;
     }
-    SetWindowLongPtr(hwnd, GWL_STYLE, GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD);
+    SetWindowLongPtr(hwnd, GWL_STYLE, (GetWindowLongPtr(hwnd, GWL_STYLE) | WS_CHILD) & ~WS_VISIBLE);
     SetParent(hwnd, assetConfig.parentHwnd);
     WmaskEXSpine* pData = new WmaskEXSpine;
     pData->config = config;
@@ -247,6 +248,7 @@ HWND createWmaskEXSpineWindow(const WmaskEXConfig& config, const WmaskEXAssetCon
         pData->spineRuntime->setSkin(pData->skinNames[int(getRandomFloat() * pData->skinNames.size())]);
 
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pData));
+    ShowWindow(hwnd, SW_SHOWNOACTIVATE);
     UpdateWindow(hwnd);
     SetTimer(hwnd, 0, wmaskEXSpineRefreshDuration, NULL); 
     return hwnd;
